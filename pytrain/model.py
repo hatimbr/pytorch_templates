@@ -92,7 +92,7 @@ class EmoClass(Module):
 
 
 def get_model(model_path: Path) -> Module:
-    encoder = Wav2Vec2Model.from_pretrained(model_path)
+    encoder = freeze_model(Wav2Vec2Model.from_pretrained(model_path))
     classifier = Classifier()
-    model = EmoClass(encoder, classifier)
+    model = EmoClass(encoder, classifier).to("cuda")
     return model
