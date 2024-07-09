@@ -3,16 +3,18 @@ from tqdm import tqdm
 from torch import Tensor
 from torch.nn import CrossEntropyLoss, Module
 from torch.optim import AdamW
+from torch.utils.data import DataLoader
 from torchmetrics import F1Score
 
 
 class Trainer:
     def __init__(
         self,
-        model,
-        train_loader,
-        test_loader,
-        config
+        model: Module,
+        train_loader: DataLoader,
+        test_loader: DataLoader,
+        config,
+        dev_test: bool = False
     ):
         self.model = model
         self.train_loader = train_loader
@@ -21,6 +23,7 @@ class Trainer:
             self.model.parameters(),
             lr=config.lr,
         )
+        self.dev_test = dev_test
 
     def train_loop(self) -> Tensor:
         self.model.train()
@@ -28,7 +31,7 @@ class Trainer:
         loop = tqdm(self.train_loader, ascii=True)
         criterion = CrossEntropyLoss()
 
-        for input_tensor, pad_mask, sentiments in loop:
+        for i, (input_tensor, pad_mask, sentiments) in enumerate(loop):
             self.optimizer.zero_grad()
 
             input_tensor = input_tensor.to("cuda")
@@ -46,6 +49,14 @@ class Trainer:
 
             loop.set_postfix(loss=loss.item(), avg_loss=avg_loss)
 
+            if self.dev_test and i == 20:
+                loop.close()
+                print(
+                    "Max memory allocated:",
+                    torch.cuda.max_memory_allocated(device='cuda')/(1024**3)
+                )
+                break
+
         return list_loss
 
     @torch.no_grad()
@@ -54,7 +65,7 @@ class Trainer:
         loop = tqdm(self.test_loader, ascii=True)
         metric = F1Score(task="multiclass", num_classes=3).to("cuda")
 
-        for input_tensor, pad_mask, sentiments in loop:
+        for i, (input_tensor, pad_mask, sentiments) in enumerate(loop):
             input_tensor = input_tensor.to("cuda")
             pad_mask = pad_mask.to("cuda")
             sentiments = sentiments.to("cuda")
@@ -63,6 +74,10 @@ class Trainer:
             score = metric(pred, sentiments)
 
             loop.set_postfix(it_score=score, avg_score=metric.compute().cpu().item())
+
+            if self.dev_test and i == 20:
+                loop.close()
+                break
 
         return metric
 

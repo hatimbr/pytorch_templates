@@ -20,6 +20,7 @@ class Config:
     model_name: str = field(default="model", metadata={"converter": str, "track": True})
 
     track: bool = field(default=False, metadata={"converter": bool, "track": False})
+    dev_test: bool = field(default=False, metadata={"converter": bool, "track": False})
 
     @property
     def model_path(self) -> Path:

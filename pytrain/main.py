@@ -10,5 +10,7 @@ if __name__ == "__main__":
     train_loader, test_loader = get_dataloader(config.data_dir)
     model = get_model(config.model_path)
 
-    trainer = Trainer(model, train_loader, config)
+    trainer = Trainer(
+        model, train_loader, test_loader, config, dev_test=config.dev_test
+    )
     trainer.train(epochs=1)
