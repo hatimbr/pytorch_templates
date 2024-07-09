@@ -7,20 +7,28 @@ from pathlib import Path
 @dataclass(kw_only=True)
 class Config:
     config_file: Path = field(
-        default="config.ini", metadata={"converter": Path, "track": False}
+        default=Path.cwd() / "config.ini", metadata={"converter": Path, "track": False}
     )
-    lr: float = field(default=1e-05, metadata={"converter": float, "track": True})
     model_dir: Path = field(
         default=Path.cwd() / "model", metadata={"converter": Path, "track": False}
     )
+    data_dir: Path = field(
+        default=Path.cwd() / "data", metadata={"converter": Path, "track": False}
+    )
+
+    lr: float = field(default=1e-05, metadata={"converter": float, "track": True})
+    model_name: str = field(default="model", metadata={"converter": str, "track": True})
+
     track: bool = field(default=False, metadata={"converter": bool, "track": False})
+
+    @property
+    def model_path(self) -> Path:
+        return self.model_dir / self.model_name
 
     def __post_init__(self) -> None:
         self.fields_names = [field.name for field in fields(self)]
-
         self.from_file(self.config_file)
         self.from_args()
-
         self.correct_type()
 
     def from_file(self, config_path) -> None:

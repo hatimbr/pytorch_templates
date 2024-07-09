@@ -6,7 +6,7 @@ if __name__ == "__main__":
     config = Config(config_file="../config.ini")
     print(config)
 
-    train_loader, test_loader = get_dataloader(config.data_path)
+    train_loader, test_loader = get_dataloader(config.data_dir)
     model = get_model(config.model_path)
 
     for input_tensor, pad_mask, sentiments in train_loader:
