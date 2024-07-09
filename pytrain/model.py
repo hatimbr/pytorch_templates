@@ -86,7 +86,7 @@ class EmoClass(Module):
             x.shape[1], pad_mask
         )
 
-        pred = self.classifier
+        pred = self.classifier(x, pad_mask)
 
         return pred
 

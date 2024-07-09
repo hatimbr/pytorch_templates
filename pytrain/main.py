@@ -12,4 +12,5 @@ if __name__ == "__main__":
     for input_tensor, pad_mask, sentiments in train_loader:
         print(input_tensor.shape, pad_mask.shape, sentiments.shape)
         out = model(input_tensor, pad_mask)
+        print(out)
         break
