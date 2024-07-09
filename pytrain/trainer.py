@@ -3,6 +3,7 @@ from tqdm import tqdm
 from torch import Tensor
 from torch.nn import CrossEntropyLoss, Module
 from torch.optim import AdamW
+from torchmetrics import F1Score
 
 
 class Trainer:
@@ -10,10 +11,12 @@ class Trainer:
         self,
         model,
         train_loader,
+        test_loader,
         config
     ):
         self.model = model
         self.train_loader = train_loader
+        self.test_loader = test_loader
         self.optimizer = AdamW(
             self.model.parameters(),
             lr=config.lr,
@@ -45,6 +48,24 @@ class Trainer:
 
         return list_loss
 
+    @torch.no_grad()
+    def test_loop(self) -> Tensor:
+        self.model.eval()
+        loop = tqdm(self.test_loader, ascii=True)
+        metric = F1Score(task="multiclass", num_classes=3).to("cuda")
+
+        for input_tensor, pad_mask, sentiments in loop:
+            input_tensor = input_tensor.to("cuda")
+            pad_mask = pad_mask.to("cuda")
+            sentiments = sentiments.to("cuda")
+
+            pred = self.model(input_tensor, pad_mask)
+            score = metric(pred, sentiments)
+
+            loop.set_postfix(it_score=score, avg_score=metric.compute().cpu().item())
+
+        return metric
+
     def train(self, epochs: int) -> Module:
         for epoch in range(epochs):
             print(
@@ -52,8 +73,12 @@ class Trainer:
             )
 
             list_loss = self.train_loop()
+            metric = self.test_loop()
 
-            print(f"average loss: {list_loss.mean().item()}")
+            print(
+                f"average loss: {list_loss.mean().item()} |",
+                f"f1 score: {metric.compute().cpu().item()}"
+            )
             print("#" * 60, "\n")
 
         return self.model
