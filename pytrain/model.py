@@ -82,7 +82,7 @@ class EmoClass(Module):
         avg_weight = self.weight / self.weight.sum()
         x = torch.einsum('hijk,i->hjk', x, avg_weight)
 
-        pad_mask = self.encoder._get_feature_vector_attention_mask(
+        pad_mask = ~self.encoder._get_feature_vector_attention_mask(
             x.shape[1], pad_mask
         )
 
