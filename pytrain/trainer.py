@@ -30,6 +30,7 @@ class Trainer:
 
             input_tensor = input_tensor.to("cuda")
             pad_mask = pad_mask.to("cuda")
+            sentiments = sentiments.to("cuda")
 
             pred = self.model(input_tensor, pad_mask)
             loss = criterion(pred, sentiments)
