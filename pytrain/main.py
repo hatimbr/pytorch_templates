@@ -3,7 +3,7 @@ from data import get_dataloader
 from model import get_model
 
 if __name__ == "__main__":
-    config = Config(config_file="../config.ini")
+    config = Config()
     print(config)
 
     train_loader, test_loader = get_dataloader(config.data_dir)

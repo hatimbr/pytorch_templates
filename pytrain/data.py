@@ -34,7 +34,7 @@ class FriendsDataset(Dataset):
         if audio_torch.shape[0] > 400000:
             audio_torch = audio_torch[:400000]
 
-        return sentiment
+        return audio_torch, sentiment
 
 
 def collate_fn(batch):
