@@ -2,9 +2,11 @@ import torch
 from tqdm import tqdm
 from torch import Tensor
 from torch.nn import CrossEntropyLoss, Module
-from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from torchmetrics import F1Score
+
+from config import OptimizerConfig
+from optimizer import get_optimizer_scheduler
 
 
 class Trainer:
@@ -13,15 +15,25 @@ class Trainer:
         model: Module,
         train_loader: DataLoader,
         test_loader: DataLoader,
-        config,
+        epochs: int,
+        optimizer_config: OptimizerConfig,
         dev_test: bool = False
     ):
         self.model = model
         self.train_loader = train_loader
         self.test_loader = test_loader
-        self.optimizer = AdamW(
-            self.model.parameters(),
-            lr=config.lr,
+        self.epochs = epochs
+        self.optimizer = get_optimizer_scheduler(
+            model,
+            optimizer_config.optimizer_name,
+            optimizer_config.lr,
+            optimizer_config.beta1,
+            optimizer_config.beta2,
+            optimizer_config.eps,
+            optimizer_config.weight_decay,
+            optimizer_config.momentum,
+            optimizer_config.lr_scheduler,
+            total_train_step=len(train_loader) * epochs,
         )
         self.dev_test = dev_test
 
@@ -83,7 +95,10 @@ class Trainer:
 
         return metric
 
-    def train(self, epochs: int) -> Module:
+    def train(self, epochs: int = None) -> Module:
+        if epochs is None:
+            epochs = self.epochs
+
         for epoch in range(epochs):
             print(
                 "*"*40, f"Epoch {epoch+1}/{epochs}", "*"*40
