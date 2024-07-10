@@ -77,8 +77,11 @@ class OptimizerConfig(Config):
         default=0.01, metadata={"converter": float, "track": True}
     )
     momentum: float = field(default=0.0, metadata={"converter": float, "track": True})
-    lr_scheduler: str | None = field(
+    lr_scheduler_name: str | None = field(
         default=None, metadata={"converter": str, "track": True}
+    )
+    num_warmup_steps: int = field(
+        default=100, metadata={"converter": int, "track": True}
     )
 
 

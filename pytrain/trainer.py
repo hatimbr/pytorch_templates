@@ -23,7 +23,7 @@ class Trainer:
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.epochs = epochs
-        self.optimizer = get_optimizer_scheduler(
+        self.optimizer, self.lr_scheduler = get_optimizer_scheduler(
             model,
             optimizer_config.optimizer_name,
             optimizer_config.lr,
@@ -32,8 +32,9 @@ class Trainer:
             optimizer_config.eps,
             optimizer_config.weight_decay,
             optimizer_config.momentum,
-            optimizer_config.lr_scheduler,
+            optimizer_config.lr_scheduler_name,
             total_train_step=len(train_loader) * epochs,
+            num_warmup_steps=optimizer_config.num_warmup_steps
         )
         self.dev_test = dev_test
 
@@ -45,6 +46,8 @@ class Trainer:
 
         for i, (input_tensor, pad_mask, sentiments) in enumerate(loop):
             self.optimizer.zero_grad()
+            if self.lr_scheduler is not None:
+                self.lr_scheduler.step()
 
             input_tensor = input_tensor.to("cuda")
             pad_mask = pad_mask.to("cuda")

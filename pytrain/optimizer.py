@@ -49,13 +49,13 @@ def get_scheduler(
     optimizer: Optimizer,
     total_train_step: int,
     num_warmup_steps: int,
-    lr_scheduler: str,
+    lr_scheduler_name: str,
 ) -> LambdaLR:
     lr_lambda = partial(
         _linear_cosine_with_warmup,
         num_warmup_steps=num_warmup_steps,
         num_training_steps=total_train_step,
-        anneal_strategy=lr_scheduler,
+        anneal_strategy=lr_scheduler_name,
     )
     return LambdaLR(optimizer, lr_lambda, -1)
 
@@ -69,8 +69,9 @@ def get_optimizer_scheduler(
     eps: float,
     weight_decay: float,
     momentum: float,
-    lr_scheduler: str | None,
+    lr_scheduler_name: str | None,
     total_train_step: int,
+    num_warmup_steps: int,
 ) -> tuple[Optimizer, LambdaLR | None]:
     match optimizer_name:
         case "adamw":
@@ -91,8 +92,10 @@ def get_optimizer_scheduler(
         case _:
             raise ValueError(f"Unknown optimizer: {optimizer_name}")
 
-    if lr_scheduler is not None:
-        lr_scheduler = get_scheduler(optimizer, total_train_step)
+    if lr_scheduler_name is not None:
+        lr_scheduler = get_scheduler(
+            optimizer, total_train_step, num_warmup_steps, lr_scheduler_name
+        )
     else:
         lr_scheduler = None
 
