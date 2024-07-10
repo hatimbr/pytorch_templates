@@ -1,10 +1,10 @@
-from config import Config
+from config import GlobalConfig
 from data import get_dataloader
 from model import get_model
 from trainer import Trainer
 
 if __name__ == "__main__":
-    config = Config()
+    config = GlobalConfig()
     print(config)
 
     train_loader, test_loader = get_dataloader(config.data_dir)
