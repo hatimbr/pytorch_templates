@@ -73,7 +73,9 @@ class Trainer:
             pred = self.model(input_tensor, pad_mask)
             score = metric(pred, sentiments)
 
-            loop.set_postfix(it_score=score, avg_score=metric.compute().cpu().item())
+            loop.set_postfix(
+                it_score=score.cpu().item(), avg_score=metric.compute().cpu().item()
+            )
 
             if self.dev_test and i == 20:
                 loop.close()
@@ -84,7 +86,7 @@ class Trainer:
     def train(self, epochs: int) -> Module:
         for epoch in range(epochs):
             print(
-                "#"*20, f"Epoch {epoch}/{epochs}", "#"*20
+                "*"*40, f"Epoch {epoch+1}/{epochs}", "*"*40
             )
 
             list_loss = self.train_loop()
@@ -94,6 +96,5 @@ class Trainer:
                 f"average loss: {list_loss.mean().item()} |",
                 f"f1 score: {metric.compute().cpu().item()}"
             )
-            print("#" * 60, "\n")
 
         return self.model
