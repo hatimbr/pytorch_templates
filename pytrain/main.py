@@ -11,6 +11,11 @@ if __name__ == "__main__":
     model = get_model(config.model_path)
 
     trainer = Trainer(
-        model, train_loader, test_loader, config, dev_test=config.dev_test
+        model,
+        train_loader,
+        test_loader,
+        config.epochs,
+        config.optimizer_config,
+        dev_test=config.dev_test
     )
     trainer.train(epochs=config.epochs)
