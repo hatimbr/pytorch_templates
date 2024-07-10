@@ -16,6 +16,7 @@ class Config:
         default=Path.cwd() / "data", metadata={"converter": Path, "track": False}
     )
 
+    epochs: int = field(default=1, metadata={"converter": int, "track": True})
     lr: float = field(default=1e-05, metadata={"converter": float, "track": True})
     model_name: str = field(default="model", metadata={"converter": str, "track": True})
 

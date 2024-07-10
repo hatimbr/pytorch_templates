@@ -13,4 +13,4 @@ if __name__ == "__main__":
     trainer = Trainer(
         model, train_loader, test_loader, config, dev_test=config.dev_test
     )
-    trainer.train(epochs=1)
+    trainer.train(epochs=config.epochs)
