@@ -21,8 +21,8 @@ if __name__ == "__main__":
     )
 
     if config.track:
-        mlflow.set_tracking_uri(config.mlflow_path)
-        mlflow.set_experiment(config.exp_name)
+        mlflow.set_tracking_uri(config.mlflow_dir)
+        mlflow.set_experiment(config.experiment_name)
 
         if mlflow.search_runs(filter_string=f"run_name='{config.run_name}'").empty:
             run_id = None
