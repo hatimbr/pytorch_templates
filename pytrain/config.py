@@ -8,7 +8,7 @@ from pathlib import Path
 class Config:
     config_name: str = "DEFAULT"
     config_file: Path = field(
-        default=Path.cwd() / "config.ini", metadata={"converter": Path, "track": False}
+        default=Path.cwd() / "config.ini", metadata={"converter": Path, "export": False}
     )
 
     def __post_init__(self) -> None:
@@ -61,28 +61,80 @@ class Config:
                 if value is not None:
                     self.__setattr__(dataclass_field.name, converter(value))
 
+    # def export(self) -> dict:
+    #     config_dict = {}
+    #     for dataclass_field in fields(self):
+    #         if dataclass_field.metadata.get("export"):
+    #             if dataclass_field.type != Config:
+    #                 config_dict[dataclass_field.name] = getattr(
+    #                     self, dataclass_field.name
+    #                 )
+    #             else:
+    #     return config_dict
+
+
+OPTIM_PARAMS = {
+    "adamw": ["lr", "beta1", "beta2", "eps", "weight_decay"],
+    "sgd": ["lr", "momentum", "weight_decay"],
+}
+
 
 @dataclass(kw_only=True)
 class OptimizerConfig(Config):
     config_name: str = "OPTIMIZER"
 
     optimizer_name: str = field(
-        default="adamw", metadata={"converter": str, "track": True}
+        default="adamw",
+        metadata={"converter": str, "export": True, "optim_params": False}
     )
-    lr: float = field(default=1e-05, metadata={"converter": float, "track": True})
-    beta1: float = field(default=0.9, metadata={"converter": float, "track": True})
-    beta2: float = field(default=0.999, metadata={"converter": float, "track": True})
-    eps: float = field(default=1e-08, metadata={"converter": float, "track": True})
-    weight_decay: float = field(
-        default=0.01, metadata={"converter": float, "track": True}
+    lr: float | None = field(
+        default=1e-05,
+        metadata={"converter": float, "export": True, "optim_params": True}
     )
-    momentum: float = field(default=0.0, metadata={"converter": float, "track": True})
+    beta1: float | None = field(
+        default=0.9,
+        metadata={"converter": float, "export": True, "optim_params": True}
+    )
+    beta2: float | None = field(
+        default=0.999,
+        metadata={"converter": float, "export": True, "optim_params": True})
+    eps: float | None = field(
+        default=1e-08,
+        metadata={"converter": float, "export": True, "optim_params": True}
+    )
+    weight_decay: float | None = field(
+        default=0.01,
+        metadata={"converter": float, "export": True, "optim_params": True}
+    )
+    momentum: float | None = field(
+        default=0.0,
+        metadata={"converter": float, "export": True, "optim_params": True}
+    )
     lr_scheduler_name: str | None = field(
-        default=None, metadata={"converter": str, "track": True}
+        default=None, metadata={"converter": str, "export": True, "optim_params": False}
     )
-    num_warmup_steps: int = field(
-        default=100, metadata={"converter": int, "track": True}
+    num_warmup_steps: int | None = field(
+        default=100, metadata={"converter": int, "export": True, "optim_params": False}
     )
+
+    def default_to_none(self) -> None:
+        """Set unused optimizer parameters to None."""
+        if self.optimizer_name not in OPTIM_PARAMS:
+            raise ValueError(f"Unknown optimizer: {self.optimizer_name}")
+
+        for dataclass_field in fields(self):
+            if (
+                dataclass_field.metadata.get("optim_params")
+                and dataclass_field.name not in OPTIM_PARAMS[self.optimizer_name]
+            ):
+                self.__setattr__(dataclass_field.name, None)
+
+        if self.lr_scheduler_name is None:
+            self.num_warmup_steps = None
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        self.default_to_none()
 
 
 @dataclass(kw_only=True)
@@ -90,20 +142,22 @@ class GlobalConfig(Config):
     config_name: str = "GLOBAL"
 
     model_dir: Path = field(
-        default=Path.cwd() / "model", metadata={"converter": Path, "track": False}
+        default=Path.cwd() / "model", metadata={"converter": Path, "export": False}
     )
     data_dir: Path = field(
-        default=Path.cwd() / "data", metadata={"converter": Path, "track": False}
+        default=Path.cwd() / "data", metadata={"converter": Path, "export": False}
     )
 
-    epochs: int = field(default=1, metadata={"converter": int, "track": True})
-    model_name: str = field(default="model", metadata={"converter": str, "track": True})
+    epochs: int = field(default=1, metadata={"converter": int, "export": True})
+    model_name: str = field(
+        default="model", metadata={"converter": str, "export": True}
+    )
 
-    track: bool = field(default=False, metadata={"converter": bool, "track": False})
-    dev_test: bool = field(default=False, metadata={"converter": bool, "track": False})
+    track: bool = field(default=False, metadata={"converter": bool, "export": False})
+    dev_test: bool = field(default=False, metadata={"converter": bool, "export": False})
 
     optimizer_config: OptimizerConfig = field(
-        default_factory=lambda: OptimizerConfig(), metadata={"track": True}
+        default_factory=lambda: OptimizerConfig(), metadata={"export": True}
     )
 
     @property
