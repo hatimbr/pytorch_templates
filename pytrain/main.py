@@ -39,5 +39,3 @@ if __name__ == "__main__":
 
     else:
         model = trainer.train(dev_test=config.dev_test)
-
-    trainer.train(epochs=config.epochs)
