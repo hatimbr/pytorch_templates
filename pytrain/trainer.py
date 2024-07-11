@@ -1,3 +1,4 @@
+import mlflow
 import torch
 from tqdm import tqdm
 from torch import Tensor
@@ -17,7 +18,6 @@ class Trainer:
         test_loader: DataLoader,
         epochs: int,
         optimizer_config: OptimizerConfig,
-        dev_test: bool = False
     ):
         self.model = model
         self.train_loader = train_loader
@@ -28,9 +28,9 @@ class Trainer:
             total_train_step=len(train_loader) * epochs,
             **optimizer_config.export()
         )
-        self.dev_test = dev_test
+        self.step = 0
 
-    def train_loop(self) -> Tensor:
+    def train_loop(self, dev_test: bool = False, track: bool = False) -> Tensor:
         self.model.train()
         list_loss = Tensor([]).to("cuda")
         loop = tqdm(self.train_loader, ascii=True)
@@ -54,9 +54,15 @@ class Trainer:
             list_loss = torch.cat((list_loss, loss.detach().data.view(1)))
             avg_loss = list_loss.mean().item()
 
+            if track:
+                mlflow.log_metrics(
+                    {"loss": loss.item(), "avg_loss": avg_loss},
+                    step=self.step,
+                )
             loop.set_postfix(loss=loss.item(), avg_loss=avg_loss)
+            self.step += 1
 
-            if self.dev_test and i == 20:
+            if dev_test and i == 20:
                 loop.close()
                 print(
                     "Max memory allocated:",
@@ -67,7 +73,7 @@ class Trainer:
         return list_loss
 
     @torch.no_grad()
-    def test_loop(self) -> Tensor:
+    def test_loop(self, dev_test: bool = False, track: bool = False) -> Tensor:
         self.model.eval()
         loop = tqdm(self.test_loader, ascii=True)
         metric = F1Score(
@@ -86,23 +92,33 @@ class Trainer:
                 it_score=score.cpu().item(), avg_score=metric.compute().cpu().item()
             )
 
-            if self.dev_test and i == 20:
+            if dev_test and i == 20:
                 loop.close()
                 break
 
+        if track:
+            mlflow.log_metric(
+                "weighted_f1", metric.compute().cpu().item(), step=self.step
+            )
+
         return metric
 
-    def train(self, epochs: int = None) -> Module:
+    def train(
+        self, epochs: int | None = None, dev_test: bool = False, track: bool = False
+    ) -> Module:
         if epochs is None:
             epochs = self.epochs
+
+        metric = self.test_loop(dev_test=dev_test, track=track)
+        print(f"Initial f1 score: {metric.compute().cpu().item()}")
 
         for epoch in range(epochs):
             print(
                 "*"*40, f"Epoch {epoch+1}/{epochs}", "*"*40
             )
 
-            list_loss = self.train_loop()
-            metric = self.test_loop()
+            list_loss = self.train_loop(dev_test=dev_test, track=track)
+            metric = self.test_loop(dev_test=dev_test, track=track)
 
             print(
                 f"average loss: {list_loss.mean().item()} |",

@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from configparser import ConfigParser
 from dataclasses import dataclass, field, fields
 from pathlib import Path
+from uuid import uuid4
 
 
 def add_spaces_to_string(s):
@@ -170,6 +171,16 @@ class GlobalConfig(Config):
     data_dir: Path = field(
         default=Path.cwd() / "data", metadata={"converter": Path, "export": False}
     )
+    mlflow_dir: Path = field(
+        default=Path.cwd() / "mlruns", metadata={"converter": Path, "export": False}
+    )
+    experiment_name: str = field(
+        default="default", metadata={"converter": str, "export": False}
+    )
+
+    run_name: str = field(
+        default="", metadata={"converter": str, "export": False}
+    )
 
     epochs: int = field(default=1, metadata={"converter": int, "export": True})
     model_name: str = field(
@@ -187,3 +198,8 @@ class GlobalConfig(Config):
     @property
     def model_path(self) -> Path:
         return self.model_dir / self.model_name
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if self.run_name == "":
+            self.run_name = uuid4().hex[:8]

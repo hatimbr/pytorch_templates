@@ -1,3 +1,5 @@
+import mlflow
+
 from config import GlobalConfig
 from data import get_dataloader
 from model import get_model
@@ -18,4 +20,25 @@ if __name__ == "__main__":
         config.optimizer_config,
         dev_test=config.dev_test
     )
+
+    if config.track:
+        mlflow.set_tracking_uri(config.mlflow_path)
+        mlflow.set_experiment(config.exp_name)
+
+        if mlflow.search_runs(filter_string=f"run_name='{config.run_name}'").empty:
+            run_id = None
+        else:
+            run_id = mlflow.search_runs(
+                filter_string=f"run_name='{config.run_name}'"
+            ).iloc[0]["run_id"]
+
+        with mlflow.start_run(
+            run_name=config.run_name, run_id=run_id, log_system_metrics=True
+        ) as _:
+            mlflow.log_params(config.export())
+            model = trainer.train()
+
+    else:
+        model = trainer.train()
+
     trainer.train(epochs=config.epochs)
