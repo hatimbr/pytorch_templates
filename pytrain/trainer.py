@@ -78,7 +78,9 @@ class Trainer:
     def test_loop(self) -> Tensor:
         self.model.eval()
         loop = tqdm(self.test_loader, ascii=True)
-        metric = F1Score(task="multiclass", num_classes=3).to("cuda")
+        metric = F1Score(
+            task="multiclass", num_classes=3, average="weighted"
+        ).to("cuda")
 
         for i, (input_tensor, pad_mask, sentiments) in enumerate(loop):
             input_tensor = input_tensor.to("cuda")
