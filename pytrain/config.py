@@ -4,9 +4,15 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 
 
+def add_spaces_to_string(s):
+    lines = s.splitlines()
+    return lines[0] + "\n" + '\n'.join(' ' * 4 + line for line in lines[1:])
+
+
 @dataclass(kw_only=True)
 class Config:
     config_name: str = "DEFAULT"
+    sub_config: bool = False
     config_file: Path = field(
         default=Path.cwd() / "config.ini", metadata={"converter": Path, "export": False}
     )
@@ -25,9 +31,10 @@ class Config:
     def from_file(self, config_path) -> None:
         confparser = ConfigParser()
         if not config_path.exists():
-            print(f"Config file not found: {config_path}")
-            print("Using default values and command line arguments only.")
-            return
+            if not self.sub_config:
+                print(f"Config file not found: {config_path}")
+                print("Using default values and command line arguments only.")
+            return None
 
         confparser.read(config_path)
         for key, val in confparser[self.config_name].items():
@@ -61,16 +68,32 @@ class Config:
                 if value is not None:
                     self.__setattr__(dataclass_field.name, converter(value))
 
-    # def export(self) -> dict:
-    #     config_dict = {}
-    #     for dataclass_field in fields(self):
-    #         if dataclass_field.metadata.get("export"):
-    #             if dataclass_field.type != Config:
-    #                 config_dict[dataclass_field.name] = getattr(
-    #                     self, dataclass_field.name
-    #                 )
-    #             else:
-    #     return config_dict
+    def export(self) -> dict:
+        config_dict = {}
+        for data_field in fields(self):
+            if data_field.metadata.get("export"):
+                config_value = getattr(self, data_field.name)
+                if isinstance(config_value, Config):
+                    sub_config_dict = {
+                        f"{config_value.config_name.lower()}.{k}": v
+                        for k, v in config_value.export().items()
+                    }
+                    config_dict.update(sub_config_dict)
+                else:
+                    config_dict[data_field.name] = config_value
+        return config_dict
+
+    def __str__(self) -> str:
+        string = f"{self.__class__.__qualname__}(\n"
+        for f in fields(self):
+            config_value = getattr(self, f.name)
+            if isinstance(config_value, Config):
+                string += " " * 4 + f"{f.name}="
+                string += f"{add_spaces_to_string(config_value.__str__())},\n"
+            else:
+                string += " " * 4 + f"{f.name}={config_value},\n"
+        string += ")"
+        return string
 
 
 OPTIM_PARAMS = {
@@ -157,7 +180,8 @@ class GlobalConfig(Config):
     dev_test: bool = field(default=False, metadata={"converter": bool, "export": False})
 
     optimizer_config: OptimizerConfig = field(
-        default_factory=lambda: OptimizerConfig(), metadata={"export": True}
+        default_factory=lambda: OptimizerConfig(sub_config=True),
+        metadata={"export": True}
     )
 
     @property
