@@ -25,16 +25,8 @@ class Trainer:
         self.epochs = epochs
         self.optimizer, self.lr_scheduler = get_optimizer_scheduler(
             model,
-            optimizer_config.optimizer_name,
-            optimizer_config.lr,
-            optimizer_config.beta1,
-            optimizer_config.beta2,
-            optimizer_config.eps,
-            optimizer_config.weight_decay,
-            optimizer_config.momentum,
-            optimizer_config.lr_scheduler_name,
             total_train_step=len(train_loader) * epochs,
-            num_warmup_steps=optimizer_config.num_warmup_steps
+            **optimizer_config.export()
         )
         self.dev_test = dev_test
 
