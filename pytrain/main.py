@@ -18,7 +18,6 @@ if __name__ == "__main__":
         test_loader,
         config.epochs,
         config.optimizer_config,
-        dev_test=config.dev_test
     )
 
     if config.track:
@@ -36,9 +35,9 @@ if __name__ == "__main__":
             run_name=config.run_name, run_id=run_id, log_system_metrics=True
         ) as _:
             mlflow.log_params(config.export())
-            model = trainer.train()
+            model = trainer.train(dev_test=config.dev_test, track=True)
 
     else:
-        model = trainer.train()
+        model = trainer.train(dev_test=config.dev_test)
 
     trainer.train(epochs=config.epochs)
