@@ -50,9 +50,9 @@ class TorchProfilerContext:
     """Wrapper for PyTorch profiler context manager."""
 
     def __init__(
-        self, profiler_dir: Path = Path().cwd() / "profiler", profile: bool = False
+        self, profiler_path: Path = Path().cwd() / "profiler", profile: bool = False
     ):
-        self.profiler_dir = profiler_dir
+        self.profiler_path = profiler_path
         self.profile = profile
 
     def __enter__(self) -> profiler.profile | None:
@@ -60,7 +60,7 @@ class TorchProfilerContext:
             self.profiler = profiler.profile(
                 schedule=profiler.schedule(wait=1, warmup=1, active=5, repeat=1),
                 on_trace_ready=profiler.tensorboard_trace_handler(
-                    str(self.profiler_dir)
+                    str(self.profiler_path)
                 ),
                 profile_memory=True,
                 with_stack=False,
@@ -82,7 +82,7 @@ def mltrack_context(config: GlobalConfig, activate: bool = True) -> MlTrackConte
 
 
 def torch_profiler_context(
-    profiler_dir: Path = Path().cwd() / "profiler", profile: bool = False
+    profiler_path: Path = Path().cwd() / "profiler", profile: bool = False
 ) -> TorchProfilerContext:
     """Custom context manager for PyTorch profiler."""
-    return TorchProfilerContext(profiler_dir, profile)
+    return TorchProfilerContext(profiler_path, profile)

@@ -168,7 +168,11 @@ class ProfilerConfig(Config):
 
     profile: bool = field(default=False, metadata={"converter": bool, "export": True})
     profiler_dir: Path = field(
-        default=Path.cwd() / "profiler", metadata={"converter": Path, "export": True}
+        default=Path.cwd() / "profiler", metadata={"converter": Path, "export": False}
+    )
+    profiler_path: Path = field(
+        default=Path.cwd() / "profiler/default",
+        metadata={"converter": Path, "export": True}
     )
 
 
@@ -218,3 +222,6 @@ class GlobalConfig(Config):
         super().__post_init__()
         if self.run_name == "":
             self.run_name = uuid4().hex[:8]
+        self.profiler_config.profiler_path = (
+            self.profiler_config.profiler_dir / self.run_name
+        )
