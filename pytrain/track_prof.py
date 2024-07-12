@@ -50,7 +50,7 @@ class TorchProfilerContext:
     """Wrapper for PyTorch profiler context manager."""
 
     def __init__(
-        self, profiler_dir: Path = Path().cwd() / "profiler", profile: bool = True
+        self, profiler_dir: Path = Path().cwd() / "profiler", profile: bool = False
     ):
         self.profiler_dir = profiler_dir
         self.profile = profile
@@ -82,7 +82,7 @@ def mltrack_context(config: GlobalConfig, activate: bool = True) -> MlTrackConte
 
 
 def torch_profiler_context(
-    profiler_dir: Path, activate: bool = True
+    profiler_dir: Path = Path().cwd() / "profiler", profile: bool = False
 ) -> TorchProfilerContext:
     """Custom context manager for PyTorch profiler."""
-    return TorchProfilerContext(profiler_dir, activate)
+    return TorchProfilerContext(profiler_dir, profile)

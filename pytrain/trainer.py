@@ -132,7 +132,7 @@ class Trainer:
             )
 
             with torch_profiler_context(
-                **(None if profiler_config is None else profiler_config.export()),
+                **({} if profiler_config is None else profiler_config.export()),
             ) as profiler:
                 list_loss = self.train_loop(
                     dev_test=dev_test, track=track, profiler=profiler
