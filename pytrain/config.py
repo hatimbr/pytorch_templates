@@ -47,11 +47,12 @@ class Config:
     def get_args(self) -> ArgumentParser:
         argparser = ArgumentParser()
         for dataclass_field in fields(self):
-            argparser.add_argument(
-                f"--{dataclass_field.name}",
-                action="store_true" if dataclass_field.type == bool else "store",
-                default=None,
-            )
+            if not isinstance(getattr(self, dataclass_field.name), Config):
+                argparser.add_argument(
+                    f"--{dataclass_field.name}",
+                    action="store_true" if dataclass_field.type == bool else "store",
+                    default=None,
+                )
         args, _ = argparser.parse_known_args()
         return args
 
