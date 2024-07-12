@@ -20,4 +20,8 @@ if __name__ == "__main__":
     )
 
     with mltrack_context(config, activate=config.track):
-        model = trainer.train(dev_test=config.dev_test, track=config.track)
+        model = trainer.train(
+            dev_test=config.dev_test,
+            track=config.track,
+            profiler_config=config.profiler_config
+        )
