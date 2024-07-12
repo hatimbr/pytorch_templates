@@ -1,8 +1,7 @@
-import mlflow
-
 from config import GlobalConfig
 from data import get_dataloader
 from model import get_model
+from track_prof import mltrack_context
 from trainer import Trainer
 
 if __name__ == "__main__":
@@ -20,22 +19,5 @@ if __name__ == "__main__":
         config.optimizer_config,
     )
 
-    if config.track:
-        mlflow.set_tracking_uri(config.mlflow_dir)
-        mlflow.set_experiment(config.experiment_name)
-
-        if mlflow.search_runs(filter_string=f"run_name='{config.run_name}'").empty:
-            run_id = None
-        else:
-            run_id = mlflow.search_runs(
-                filter_string=f"run_name='{config.run_name}'"
-            ).iloc[0]["run_id"]
-
-        with mlflow.start_run(
-            run_name=config.run_name, run_id=run_id, log_system_metrics=True
-        ) as _:
-            mlflow.log_params(config.export())
-            model = trainer.train(dev_test=config.dev_test, track=True)
-
-    else:
-        model = trainer.train(dev_test=config.dev_test)
+    with mltrack_context(config, activate=config.track):
+        model = trainer.train(dev_test=config.dev_test, track=config.track)
