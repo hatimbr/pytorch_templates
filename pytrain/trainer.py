@@ -3,11 +3,13 @@ import torch
 from tqdm import tqdm
 from torch import Tensor
 from torch.nn import CrossEntropyLoss, Module
+from torch.profiler import profile
 from torch.utils.data import DataLoader
 from torchmetrics import F1Score
 
-from config import OptimizerConfig
+from config import OptimizerConfig, ProfilerConfig
 from optimizer import get_optimizer_scheduler
+from track_prof import torch_profiler_context
 
 
 class Trainer:
@@ -30,7 +32,12 @@ class Trainer:
         )
         self.step = 0
 
-    def train_loop(self, dev_test: bool = False, track: bool = False) -> Tensor:
+    def train_loop(
+        self,
+        dev_test: bool = False,
+        track: bool = False,
+        profiler: profile | None = None
+    ) -> Tensor:
         self.model.train()
         list_loss = Tensor([]).to("cuda")
         loop = tqdm(self.train_loader, ascii=True)
@@ -61,6 +68,9 @@ class Trainer:
                 )
             loop.set_postfix(loss=loss.item(), avg_loss=avg_loss)
             self.step += 1
+
+            if profiler is not None:
+                profiler.step()
 
             if dev_test and i == 20:
                 loop.close()
@@ -104,7 +114,11 @@ class Trainer:
         return metric
 
     def train(
-        self, epochs: int | None = None, dev_test: bool = False, track: bool = False
+        self,
+        epochs: int | None = None,
+        dev_test: bool = False,
+        track: bool = False,
+        profiler_config: ProfilerConfig | None = None
     ) -> Module:
         if epochs is None:
             epochs = self.epochs
@@ -117,7 +131,13 @@ class Trainer:
                 "*"*40, f"Epoch {epoch+1}/{epochs}", "*"*40
             )
 
-            list_loss = self.train_loop(dev_test=dev_test, track=track)
+            with torch_profiler_context(
+                **(None if profiler_config is None else profiler_config.export()),
+            ) as profiler:
+                list_loss = self.train_loop(
+                    dev_test=dev_test, track=track, profiler=profiler
+                )
+
             metric = self.test_loop(dev_test=dev_test, track=track)
 
             print(

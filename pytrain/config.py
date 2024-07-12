@@ -162,6 +162,16 @@ class OptimizerConfig(Config):
 
 
 @dataclass(kw_only=True)
+class ProfilerConfig(Config):
+    config_name: str = "PROFILER"
+
+    profile: bool = field(default=False, metadata={"converter": bool, "export": True})
+    profiler_dir: Path = field(
+        default=Path.cwd() / "profiler", metadata={"converter": Path, "export": True}
+    )
+
+
+@dataclass(kw_only=True)
 class GlobalConfig(Config):
     config_name: str = "GLOBAL"
 
@@ -193,6 +203,10 @@ class GlobalConfig(Config):
     optimizer_config: OptimizerConfig = field(
         default_factory=lambda: OptimizerConfig(sub_config=True),
         metadata={"export": True}
+    )
+    profiler_config: ProfilerConfig = field(
+        default_factory=lambda: ProfilerConfig(sub_config=True),
+        metadata={"export": False}
     )
 
     @property

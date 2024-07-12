@@ -1,4 +1,10 @@
-from mlflow import log_params, search_runs, set_experiment, set_tracking_uri, start_run
+from pathlib import Path
+
+from mlflow import (
+    log_params, search_runs, set_experiment, set_tracking_uri, start_run, ActiveRun
+)
+from torch import profiler
+
 from config import GlobalConfig
 
 
@@ -9,7 +15,7 @@ class MlTrackContext:
         self.config = config
         self.activate = activate
 
-    def __enter__(self):
+    def __enter__(self) -> ActiveRun | None:
         if self.activate:
             set_tracking_uri(self.config.mlflow_dir)
             set_experiment(self.config.experiment_name)
@@ -40,6 +46,43 @@ class MlTrackContext:
             return exc_type is None
 
 
-def mltrack_context(config: GlobalConfig, activate: bool = True):
+class TorchProfilerContext:
+    """Wrapper for PyTorch profiler context manager."""
+
+    def __init__(
+        self, profiler_dir: Path = Path().cwd() / "profiler", profile: bool = True
+    ):
+        self.profiler_dir = profiler_dir
+        self.profile = profile
+
+    def __enter__(self) -> profiler.profile | None:
+        if self.profile:
+            self.profiler = profiler.profile(
+                schedule=profiler.schedule(wait=1, warmup=1, active=5, repeat=1),
+                on_trace_ready=profiler.tensorboard_trace_handler(
+                    str(self.profiler_dir)
+                ),
+                profile_memory=True,
+                with_stack=False,
+                record_shapes=False,
+            )
+            self.profiler.__enter__()
+            return self.profiler
+        else:
+            return None
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.profile:
+            self.profiler.__exit__(exc_type, exc_val, exc_tb)
+
+
+def mltrack_context(config: GlobalConfig, activate: bool = True) -> MlTrackContext:
     """Custom context manager for mlflow tracking."""
     return MlTrackContext(config, activate)
+
+
+def torch_profiler_context(
+    profiler_dir: Path, activate: bool = True
+) -> TorchProfilerContext:
+    """Custom context manager for PyTorch profiler."""
+    return TorchProfilerContext(profiler_dir, activate)
