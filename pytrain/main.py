@@ -1,7 +1,7 @@
 from config import GlobalConfig
 from data import get_dataloader
 from model import get_model
-from track_prof import mltrack_context
+from track_prof import MlTrackContext
 from trainer import Trainer
 
 if __name__ == "__main__":
@@ -19,7 +19,7 @@ if __name__ == "__main__":
         config.optimizer_config,
     )
 
-    with mltrack_context(config, activate=config.track):
+    with MlTrackContext(config, track=config.track):
         model = trainer.train(
             dev_test=config.dev_test,
             track=config.track,

@@ -15,12 +15,12 @@ from torch import profiler
 class MlTrackContext:
     """Wrapper for mlflow tracking context manager."""
 
-    def __init__(self, config: GlobalConfig, activate: bool = True):
+    def __init__(self, config: GlobalConfig, track: bool = False):
         self.config = config
-        self.activate = activate
+        self.track = track
 
     def __enter__(self) -> ActiveRun | None:
-        if self.activate:
+        if self.track:
             set_tracking_uri(self.config.mlflow_dir)
             set_experiment(self.config.experiment_name)
 
@@ -44,7 +44,7 @@ class MlTrackContext:
             return None
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.activate:
+        if self.track:
             self.run.__exit__(exc_type, exc_val, exc_tb)
         else:
             return exc_type is None
@@ -78,15 +78,3 @@ class TorchProfilerContext:
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.profile:
             self.profiler.__exit__(exc_type, exc_val, exc_tb)
-
-
-def mltrack_context(config: GlobalConfig, activate: bool = True) -> MlTrackContext:
-    """Custom context manager for mlflow tracking."""
-    return MlTrackContext(config, activate)
-
-
-def torch_profiler_context(
-    profiler_path: Path = Path().cwd() / "profiler", profile: bool = False
-) -> TorchProfilerContext:
-    """Custom context manager for PyTorch profiler."""
-    return TorchProfilerContext(profiler_path, profile)

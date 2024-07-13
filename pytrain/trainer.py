@@ -8,7 +8,7 @@ from torch.profiler import profile
 from torch.utils.data import DataLoader
 from torchmetrics.classification import MulticlassF1Score
 from tqdm import tqdm
-from track_prof import torch_profiler_context
+from track_prof import TorchProfilerContext
 
 
 class Trainer:
@@ -130,7 +130,7 @@ class Trainer:
                 "*"*40, f"Epoch {epoch+1}/{epochs}", "*"*40
             )
 
-            with torch_profiler_context(
+            with TorchProfilerContext(
                 **({} if profiler_config is None else profiler_config.export()),
             ) as profiler:
                 list_loss = self.train_loop(
