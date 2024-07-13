@@ -174,6 +174,33 @@ class ProfilerConfig(Config):
         default=Path.cwd() / "profiler/default",
         metadata={"converter": Path, "export": True}
     )
+    profiler_schedule_wait: int = field(
+        default=1, metadata={"converter": int, "export": True}
+    )
+    profiler_schedule_warmup: int = field(
+        default=1, metadata={"converter": int, "export": True}
+    )
+    profiler_schedule_active: int = field(
+        default=5, metadata={"converter": int, "export": True}
+    )
+    profiler_schedule_repeat: int = field(
+        default=1, metadata={"converter": int, "export": True}
+    )
+    profiler_profile_memory: bool = field(
+        default=True, metadata={"converter": bool, "export": True}
+    )
+    profiler_with_stack: bool = field(
+        default=False, metadata={"converter": bool, "export": True}
+    )
+    profiler_record_shapes: bool = field(
+        default=False, metadata={"converter": bool, "export": True}
+    )
+    profiler_with_flops: bool = field(
+        default=False, metadata={"converter": bool, "export": True}
+    )
+    profiler_with_modules: bool = field(
+        default=False, metadata={"converter": bool, "export": True}
+    )
 
 
 @dataclass(kw_only=True)

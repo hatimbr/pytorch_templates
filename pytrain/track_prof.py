@@ -54,21 +54,48 @@ class TorchProfilerContext:
     """Wrapper for PyTorch profiler context manager."""
 
     def __init__(
-        self, profiler_path: Path = Path().cwd() / "profiler", profile: bool = False
+        self,
+        profiler_path: Path = Path().cwd() / "profiler",
+        profile: bool = False,
+        profiler_schedule_wait: int = 1,
+        profiler_schedule_warmup: int = 1,
+        profiler_schedule_active: int = 5,
+        profiler_schedule_repeat: int = 1,
+        profiler_profile_memory: bool = True,
+        profiler_with_stack: bool = False,
+        profiler_record_shapes: bool = False,
+        profiler_with_flops: bool = False,
+        profiler_with_modules: bool = False,
     ):
         self.profiler_path = profiler_path
         self.profile = profile
+        self.profiler_schedule_wait = profiler_schedule_wait
+        self.profiler_schedule_warmup = profiler_schedule_warmup
+        self.profiler_schedule_active = profiler_schedule_active
+        self.profiler_schedule_repeat = profiler_schedule_repeat
+        self.profiler_profile_memory = profiler_profile_memory
+        self.profiler_with_stack = profiler_with_stack
+        self.profiler_record_shapes = profiler_record_shapes
+        self.profiler_with_flops = profiler_with_flops
+        self.profiler_with_modules = profiler_with_modules
 
     def __enter__(self) -> profiler.profile | None:
         if self.profile:
             self.profiler = profiler.profile(
-                schedule=profiler.schedule(wait=1, warmup=1, active=5, repeat=1),
+                schedule=profiler.schedule(
+                    wait=self.profiler_schedule_wait,
+                    warmup=self.profiler_schedule_warmup,
+                    active=self.profiler_schedule_active,
+                    repeat=self.profiler_schedule_repeat,
+                ),
                 on_trace_ready=profiler.tensorboard_trace_handler(
                     str(self.profiler_path)
                 ),
-                profile_memory=True,
-                with_stack=False,
-                record_shapes=False,
+                profile_memory=self.profiler_profile_memory,
+                with_stack=self.profiler_with_stack,
+                record_shapes=self.profiler_record_shapes,
+                with_flops=self.profiler_with_flops,
+                with_modules=self.profiler_with_modules
             )
             self.profiler.__enter__()
             return self.profiler
