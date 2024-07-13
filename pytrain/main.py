@@ -8,7 +8,7 @@ if __name__ == "__main__":
     config = GlobalConfig()
     print(config)
 
-    train_loader, test_loader = get_dataloader(config.data_dir)
+    train_loader, test_loader = get_dataloader(config.dataset_path)
     model = get_model(config.model_path)
 
     trainer = Trainer(

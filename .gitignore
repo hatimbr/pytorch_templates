@@ -1,1 +1,5 @@
 __pycache__/
+mlruns/
+profiler/
+model/
+data/

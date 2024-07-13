@@ -1,32 +1,32 @@
 from pathlib import Path
 
-import torch
-from torch.utils.data import Dataset, DataLoader
 import pandas as pd
+import torch
+from torch.utils.data import DataLoader, Dataset
 
 
 class FriendsDataset(Dataset):
-    def __init__(self, df: pd.DataFrame, data_path: Path):
+    def __init__(self, df: pd.DataFrame, dataset_path: Path):
         self.df = df
         self.sentiments_dict = {
             "neutral": 0,
             "positive": 1,
             "negative": 2,
         }
-        self.data_path = data_path
+        self.dataset_path = dataset_path
 
     def __len__(self) -> int:
         """Return the number of element of the dataset"""
         return len(self.df)
 
-    def __getitem__(self, idx) -> tuple[torch.Tensor, int, int, int]:
+    def __getitem__(self, idx) -> tuple[torch.Tensor, int]:
         """Return the input for the model and the label for the loss"""
         df_elem = self.df.loc[idx]
 
         sentiment = self.sentiments_dict[df_elem['Sentiment']]
 
         audio_torch = torch.load(
-            self.data_path /
+            self.dataset_path /
             f"dia{df_elem['Dialogue_ID']}_utt{df_elem['Utterance_ID']}.pt"
         )
 
@@ -51,12 +51,12 @@ def collate_fn(batch):
     return input_tensor, pad_mask, sentiments
 
 
-def get_dataloader(data_path: Path) -> tuple[DataLoader, DataLoader]:
-    train_df = pd.read_csv(data_path / "train_sent_emo.csv")
-    test_df = pd.read_csv(data_path / "test_sent_emo.csv")
+def get_dataloader(dataset_path: Path) -> tuple[DataLoader, DataLoader]:
+    train_df = pd.read_csv(dataset_path / "train_sent_emo.csv")
+    test_df = pd.read_csv(dataset_path / "test_sent_emo.csv")
 
-    train_dataset = FriendsDataset(train_df, data_path / "train_pt")
-    test_dataset = FriendsDataset(test_df, data_path / "test_pt")
+    train_dataset = FriendsDataset(train_df, dataset_path / "train_pt")
+    test_dataset = FriendsDataset(test_df, dataset_path / "test_pt")
 
     train_dataloader = DataLoader(
         train_dataset,

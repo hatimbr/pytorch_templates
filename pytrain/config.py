@@ -180,8 +180,8 @@ class ProfilerConfig(Config):
 class GlobalConfig(Config):
     config_name: str = "GLOBAL"
 
-    model_dir: Path = field(
-        default=Path.cwd() / "model", metadata={"converter": Path, "export": False}
+    models_dir: Path = field(
+        default=Path.cwd() / "models", metadata={"converter": Path, "export": False}
     )
     data_dir: Path = field(
         default=Path.cwd() / "data", metadata={"converter": Path, "export": False}
@@ -201,6 +201,9 @@ class GlobalConfig(Config):
     model_name: str = field(
         default="model", metadata={"converter": str, "export": True}
     )
+    dataset_name: str = field(
+        default="dataset", metadata={"converter": str, "export": True}
+    )
 
     track: bool = field(default=False, metadata={"converter": bool, "export": False})
     dev_test: bool = field(default=False, metadata={"converter": bool, "export": False})
@@ -216,7 +219,11 @@ class GlobalConfig(Config):
 
     @property
     def model_path(self) -> Path:
-        return self.model_dir / self.model_name
+        return self.models_dir / self.model_name
+    
+    @property
+    def dataset_path(self) -> Path:
+        return self.data_dir / self.dataset_name
 
     def __post_init__(self) -> None:
         super().__post_init__()

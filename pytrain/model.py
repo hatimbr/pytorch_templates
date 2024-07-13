@@ -1,5 +1,6 @@
-import torch
 from pathlib import Path
+
+import torch
 from torch import Tensor
 from torch.nn import (
     Dropout,
@@ -10,7 +11,7 @@ from torch.nn import (
     ReLU,
     Sequential,
     TransformerEncoder,
-    TransformerEncoderLayer
+    TransformerEncoderLayer,
 )
 from transformers import Wav2Vec2Model
 

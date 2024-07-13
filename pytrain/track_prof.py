@@ -1,11 +1,15 @@
 from pathlib import Path
 
+from config import GlobalConfig
 from mlflow import (
-    log_params, search_runs, set_experiment, set_tracking_uri, start_run, ActiveRun
+    ActiveRun,
+    log_params,
+    search_runs,
+    set_experiment,
+    set_tracking_uri,
+    start_run,
 )
 from torch import profiler
-
-from config import GlobalConfig
 
 
 class MlTrackContext:

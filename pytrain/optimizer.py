@@ -1,9 +1,9 @@
 from functools import partial
 from math import cos, pi
 
+from torch.nn import Module
 from torch.optim import SGD, AdamW, Optimizer
 from torch.optim.lr_scheduler import LambdaLR
-from torch.nn import Module
 
 
 def _linear_cosine_with_warmup(
