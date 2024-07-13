@@ -50,7 +50,7 @@ class Config:
             if not isinstance(getattr(self, dataclass_field.name), Config):
                 argparser.add_argument(
                     f"--{dataclass_field.name}",
-                    action="store_true" if dataclass_field.type == bool else "store",
+                    action="store_true" if dataclass_field.type is bool else "store",
                     default=None,
                 )
         args, _ = argparser.parse_known_args()
@@ -231,6 +231,7 @@ class GlobalConfig(Config):
     dataset_name: str = field(
         default="dataset", metadata={"converter": str, "export": True}
     )
+    batch_size: int = field(default=4, metadata={"converter": int, "export": True})
 
     track: bool = field(default=False, metadata={"converter": bool, "export": False})
     dev_test: bool = field(default=False, metadata={"converter": bool, "export": False})
@@ -247,7 +248,7 @@ class GlobalConfig(Config):
     @property
     def model_path(self) -> Path:
         return self.models_dir / self.model_name
-    
+
     @property
     def dataset_path(self) -> Path:
         return self.data_dir / self.dataset_name

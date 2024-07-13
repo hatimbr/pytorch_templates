@@ -51,7 +51,9 @@ def collate_fn(batch):
     return input_tensor, pad_mask, sentiments
 
 
-def get_dataloader(dataset_path: Path) -> tuple[DataLoader, DataLoader]:
+def get_dataloader(
+    dataset_path: Path, batch_size: int
+) -> tuple[DataLoader, DataLoader]:
     train_df = pd.read_csv(dataset_path / "train_sent_emo.csv")
     test_df = pd.read_csv(dataset_path / "test_sent_emo.csv")
 
@@ -60,7 +62,7 @@ def get_dataloader(dataset_path: Path) -> tuple[DataLoader, DataLoader]:
 
     train_dataloader = DataLoader(
         train_dataset,
-        batch_size=4,
+        batch_size=batch_size,
         num_workers=1,
         prefetch_factor=1,
         shuffle=True,
@@ -68,7 +70,7 @@ def get_dataloader(dataset_path: Path) -> tuple[DataLoader, DataLoader]:
     )
     test_dataloader = DataLoader(
         test_dataset,
-        batch_size=4,
+        batch_size=batch_size,
         num_workers=1,
         prefetch_factor=1,
         collate_fn=collate_fn
