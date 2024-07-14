@@ -9,7 +9,9 @@ if __name__ == "__main__":
     print(config)
 
     train_loader, test_loader = get_dataloader(config.dataset_path, config.batch_size)
-    model = get_model(config.model_path)
+    model = get_model(
+        config.model_config.encoder_path, **config.model_config.export("kwargs")
+    )
 
     trainer = Trainer(
         model,

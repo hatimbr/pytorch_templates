@@ -25,12 +25,11 @@ def freeze_model(model):
 class Classifier(torch.nn.Module):
     def __init__(
         self,
-        encoder_hidden_dim=1024,
-        nhead=8,
-        nb_transformer_encoder_layer=2,
-        nb_hidden_layer=1,
-        nb_feat_tokens=1,
-        nb_class=3,
+        encoder_hidden_dim: int = 1024,
+        nhead: int = 8,
+        nb_transformer_encoder_layer: int = 2,
+        nb_hidden_layer: int = 1,
+        nb_class: int = 3,
     ):
         super(Classifier, self).__init__()
 
@@ -56,8 +55,6 @@ class Classifier(torch.nn.Module):
 
         self.classif = Linear(encoder_hidden_dim, nb_class)
 
-        self.nb_feat_tokens = nb_feat_tokens
-
     def forward(self, x, pad_mask=None):
         x = self.transformer_encoder(x, src_key_padding_mask=pad_mask)
         x = x[:, 0, :]
@@ -70,10 +67,23 @@ class Classifier(torch.nn.Module):
 
 
 class EmoClass(Module):
-    def __init__(self, encoder, classifier):
+    def __init__(
+        self,
+        encoder: Wav2Vec2Model,
+        nhead: int = 8,
+        nb_transformer_encoder_layer: int = 2,
+        nb_hidden_layer: int = 1,
+        nb_class: int = 3,
+    ):
         super().__init__()
         self.encoder = encoder
-        self.classifier = classifier
+        self.classifier = Classifier(
+            encoder_hidden_dim=encoder.config.hidden_size,
+            nhead=nhead,
+            nb_transformer_encoder_layer=nb_transformer_encoder_layer,
+            nb_hidden_layer=nb_hidden_layer,
+            nb_class=nb_class,
+        )
         self.weight = Parameter(torch.randn(encoder.config.num_hidden_layers + 1))
 
     def forward(self, x: Tensor, pad_mask: Tensor) -> Tensor:
@@ -92,8 +102,8 @@ class EmoClass(Module):
         return pred
 
 
-def get_model(model_path: Path) -> Module:
-    encoder = freeze_model(Wav2Vec2Model.from_pretrained(model_path))
-    classifier = Classifier()
-    model = EmoClass(encoder, classifier).to("cuda")
+def get_model(encoder_path: Path, **kwargs) -> Module:
+    encoder = freeze_model(Wav2Vec2Model.from_pretrained(encoder_path))
+    model = EmoClass(encoder, **kwargs).to("cuda")
+    print(model)
     return model

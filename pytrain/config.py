@@ -70,10 +70,10 @@ class Config:
                 if value is not None:
                     self.__setattr__(dataclass_field.name, converter(value))
 
-    def export(self) -> dict:
+    def export(self, meta_filter="export") -> dict:
         config_dict = {}
         for data_field in fields(self):
-            if data_field.metadata.get("export"):
+            if data_field.metadata.get(meta_filter):
                 config_value = getattr(self, data_field.name)
                 if isinstance(config_value, Config):
                     sub_config_dict = {
@@ -204,12 +204,35 @@ class ProfilerConfig(Config):
 
 
 @dataclass(kw_only=True)
+class ModelConfig(Config):
+    config_name: str = "MODEL"
+
+    models_dir: Path = field(
+        default=Path.cwd() / "models",
+        metadata={"converter": Path, "export": False, "kwargs": False}
+    )
+    encoder_name: str = field(
+        default="model", metadata={"converter": str, "export": True, "kwargs": False}
+    )
+    nhead: int = field(
+        default=8, metadata={"converter": int, "export": True, "kwargs": True}
+    )
+    nb_transformer_encoder_layer: int = field(
+        default=2, metadata={"converter": int, "export": True, "kwargs": True}
+    )
+    nb_hidden_layer: int = field(
+        default=1, metadata={"converter": int, "export": True, "kwargs": True}
+    )
+
+    @property
+    def encoder_path(self) -> Path:
+        return self.models_dir / self.encoder_name
+
+
+@dataclass(kw_only=True)
 class GlobalConfig(Config):
     config_name: str = "GLOBAL"
 
-    models_dir: Path = field(
-        default=Path.cwd() / "models", metadata={"converter": Path, "export": False}
-    )
     data_dir: Path = field(
         default=Path.cwd() / "data", metadata={"converter": Path, "export": False}
     )
@@ -225,9 +248,6 @@ class GlobalConfig(Config):
     )
 
     epochs: int = field(default=1, metadata={"converter": int, "export": True})
-    model_name: str = field(
-        default="model", metadata={"converter": str, "export": True}
-    )
     dataset_name: str = field(
         default="dataset", metadata={"converter": str, "export": True}
     )
@@ -244,10 +264,10 @@ class GlobalConfig(Config):
         default_factory=lambda: ProfilerConfig(sub_config=True),
         metadata={"export": False}
     )
-
-    @property
-    def model_path(self) -> Path:
-        return self.models_dir / self.model_name
+    model_config: ModelConfig = field(
+        default_factory=lambda: ModelConfig(sub_config=True),
+        metadata={"export": True}
+    )
 
     @property
     def dataset_path(self) -> Path:
