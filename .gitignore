@@ -1,0 +1,6 @@
+__pycache__/
+mlruns/
+profiler/
+models/
+data/
+.vscode/
