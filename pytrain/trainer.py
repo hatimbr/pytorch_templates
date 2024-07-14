@@ -1,14 +1,15 @@
 import mlflow
 import torch
-from config import OptimizerConfig, ProfilerConfig
-from optimizer import get_optimizer_scheduler
 from torch import Tensor
 from torch.nn import CrossEntropyLoss, Module
 from torch.profiler import profile
 from torch.utils.data import DataLoader
 from torchmetrics.classification import MulticlassF1Score
 from tqdm import tqdm
-from track_prof import TorchProfilerContext
+
+from .config import OptimizerConfig, ProfilerConfig
+from .optimizer import get_optimizer_scheduler
+from .track_prof import TorchProfilerContext
 
 
 class Trainer:
@@ -82,7 +83,9 @@ class Trainer:
         return list_loss
 
     @torch.no_grad()
-    def test_loop(self, dev_test: bool = False, track: bool = False) -> MulticlassF1Score:
+    def test_loop(
+        self, dev_test: bool = False, track: bool = False
+    ) -> MulticlassF1Score:
         self.model.eval()
         loop = tqdm(self.test_loader, ascii=True)
         metric = MulticlassF1Score(

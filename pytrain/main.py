@@ -1,10 +1,11 @@
-from config import GlobalConfig
-from data import get_dataloader
-from model import get_model
-from track_prof import MlTrackContext
-from trainer import Trainer
+from .config import GlobalConfig
+from .data import get_dataloader
+from .model import get_model
+from .track_prof import MlTrackContext
+from .trainer import Trainer
 
-if __name__ == "__main__":
+
+def run():
     config = GlobalConfig()
     print(config)
 
@@ -27,3 +28,7 @@ if __name__ == "__main__":
             track=config.track,
             profiler_config=config.profiler_config
         )
+
+
+if __name__ == "__main__":
+    run()

@@ -1,5 +1,6 @@
 __pycache__/
 mlruns/
 profiler/
-model/
+models/
 data/
+.vscode/
