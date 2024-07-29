@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from configparser import ConfigParser
 from dataclasses import dataclass, field, fields
 from pathlib import Path
@@ -44,7 +44,7 @@ class Config:
             else:
                 print(f"Unknown key from config file, ignoring: {key}")
 
-    def get_args(self) -> ArgumentParser:
+    def get_args(self) -> Namespace:
         argparser = ArgumentParser()
         for dataclass_field in fields(self):
             if not isinstance(getattr(self, dataclass_field.name), Config):
