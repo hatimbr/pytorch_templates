@@ -165,7 +165,7 @@ class Trainer:
             epochs = self.epochs
 
         perplexity = self.test_loop(dev_test=dev_test, track=track)
-        print(f"Initial f1 score: {perplexity}")
+        print(f"Initial perplexity score: {perplexity}")
 
         for epoch in range(epochs):
             print(
@@ -183,7 +183,7 @@ class Trainer:
 
             print(
                 f"average loss: {list_loss.mean().item()} |",
-                f"f1 score: {perplexity}"
+                f"perplexity score: {perplexity}"
             )
 
         return self.model
